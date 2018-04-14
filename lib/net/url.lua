@@ -56,16 +56,16 @@ local legal = {
 }
 
 local function decode(str)
-	local str = str:gsub('+', ' ')
-	return (str:gsub("%%(%x%x)", function(c)
-			return string.char(tonumber(c, 16))
-	end))
+    str = str:gsub('+', ' ')
+    return str:gsub("%%(%x%x)", function (c)
+        return string.char(tonumber(c, 16))
+    end)
 end
 
 local function encode(str)
-	return (str:gsub("([^A-Za-z0-9%_%.%-%~])", function(v)
-			return string.upper(string.format("%%%02x", string.byte(v)))
-	end))
+    return str:gsub("[^a-zA-Z0-9%-_%.~!%*'%(%);:@&=%+%$,/%?#%[%]]", function (c)
+        return string.format('%%%X', string.byte(c))
+    end)
 end
 
 -- for query values, prefer + instead of %20 for spaces
@@ -293,7 +293,10 @@ function M.parse(url)
 		comp.fragment = v
 		return ''
 	end)
-	url =url:gsub('^([%w][%w%+%-%.]*)%:', function(v)
+	if not url:match("://") then
+		url = "http://" .. url
+	end
+	url =url:gsub('^([%w]+):', function(v)
 		comp.scheme = v:lower()
 		return ''
 	end)
